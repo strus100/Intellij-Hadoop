@@ -15,7 +15,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 public class WordCount {
 
     public static class TokenizerMapper
-            extends Mapper<Object, Text, Text, Text> {
+            extends Mapper<Object, Text, Text, CustomOutputValue> {
+
+        private final static CustomOutputValue one = new CustomOutputValue(1);
+        private final Text word = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -31,8 +34,8 @@ public class WordCount {
     }
 
     public static class IntSumReducer
-            extends Reducer<Text, IntWritable, Text, Text> {
-        private Text result = new Text();
+            extends Reducer<Text, CustomOutputValue, Text, CustomOutputValue> {
+        private CustomOutputValue result = new CustomOutputValue();
 
         public void reduce(Text filmId, Iterable<IntWritable> rates,
                            Context context
@@ -56,8 +59,7 @@ public class WordCount {
         job.setCombinerClass(IntSumReducer.class);
         job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        job.setMapOutputValueClass(Text.class);
+        job.setOutputValueClass(CustomOutputValue.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
