@@ -14,10 +14,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class WordCount {
 
-    public static class TokenizerMapper
-            extends Mapper<Object, Text, Text, CustomOutputValue> {
+    public static class CustomMapper
+            extends Mapper<Object, Text, Text, IntWritable> {
 
-        private final static CustomOutputValue one = new CustomOutputValue(1);
         private final Text word = new Text();
 
         public void map(Object key, Text value, Context context
@@ -25,16 +24,16 @@ public class WordCount {
             if (((LongWritable) key).get() != 0) {
                 String[] line = value.toString().split(",");
 
-                String filmId = line[1];
-                String rate = line[3];
+                word.set(line[1]);
+                int rate = Integer.parseInt(line[3]);
 
-                context.write(new Text(filmId), new Text(rate));
+                context.write(word, new IntWritable(rate));
             }
         }
     }
 
-    public static class IntSumReducer
-            extends Reducer<Text, CustomOutputValue, Text, CustomOutputValue> {
+    public static class CustomReducer
+            extends Reducer<Text, IntWritable, Text, CustomOutputValue> {
         private CustomOutputValue result = new CustomOutputValue();
 
         public void reduce(Text filmId, Iterable<IntWritable> rates,
@@ -46,7 +45,8 @@ public class WordCount {
                 sum += val.get();
                 count++;
             }
-            result.set(sum + count + "");
+            result.setSum(sum);
+            result.setCount(count);
             context.write(filmId, result);
         }
     }
@@ -55,10 +55,10 @@ public class WordCount {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "word count");
         job.setJarByClass(WordCount.class);
-        job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
+        job.setMapperClass(CustomMapper.class);
+        job.setReducerClass(CustomReducer.class);
         job.setOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(IntWritable.class);
         job.setOutputValueClass(CustomOutputValue.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

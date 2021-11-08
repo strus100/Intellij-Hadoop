@@ -1,34 +1,25 @@
+import lombok.*;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.io.WritableComparator;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class CustomOutputValue implements WritableComparable {
-    private int value;
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+public class CustomOutputValue implements WritableComparable<CustomOutputValue> {
 
-    public CustomOutputValue() {
-    }
-
-    public CustomOutputValue(int value) {
-        this.set(value);
-    }
-
-    public void set(int value) {
-        this.value = value;
-    }
-
-    public int get() {
-        return this.value;
-    }
+    private int sum;
+    private int count;
 
     public void readFields(DataInput in) throws IOException {
-        this.value = in.readInt();
+        this.sum = in.readInt();
     }
 
     public void write(DataOutput out) throws IOException {
-        out.writeInt(this.value);
+        out.writeInt(this.sum);
     }
 
     public boolean equals(Object o) {
@@ -36,38 +27,21 @@ public class CustomOutputValue implements WritableComparable {
             return false;
         } else {
             CustomOutputValue other = (CustomOutputValue) o;
-            return this.value == other.value;
+            return this.sum == other.sum && this.count == other.count;
         }
     }
 
     public int hashCode() {
-        return this.value;
-    }
-
-    public int compareTo(Object o) {
-        int thisValue = this.value;
-        int thatValue = ((CustomOutputValue)o).value;
-        return thisValue < thatValue ? -1 : (thisValue == thatValue ? 0 : 1);
+        return this.sum * count;
     }
 
     public String toString() {
-        return Integer.toString(this.value);
+        return this.sum + ", " + this.count ;
     }
 
-    static {
-        WritableComparator.define(CustomOutputValue.class, new CustomOutputValue.Comparator());
-    }
-
-    public static class Comparator extends WritableComparator {
-        public Comparator() {
-            super(CustomOutputValue.class);
-        }
-
-        public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-            int thisValue = readInt(b1, s1);
-            int thatValue = readInt(b2, s2);
-            return thisValue < thatValue ? -1 : (thisValue == thatValue ? 0 : 1);
-        }
+    @Override
+    public int compareTo(CustomOutputValue o) {
+        return 0;
     }
 }
 
