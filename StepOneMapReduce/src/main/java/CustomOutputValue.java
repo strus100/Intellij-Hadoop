@@ -36,7 +36,7 @@ public class CustomOutputValue implements WritableComparable<CustomOutputValue> 
     }
 
     public String toString() {
-        return this.sum + ", " + this.count ;
+        return this.sum + "\t" + this.count ;
     }
 
     @Override
