@@ -49,5 +49,21 @@ public class CustomOutputValue implements WritableComparable<CustomOutputValue> 
     public int compareTo(CustomOutputValue o) {
         return 0;
     }
+
+    public int getSum() {
+        return sum;
+    }
+
+    public void setSum(int sum) {
+        this.sum = sum;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
 }
 
