@@ -14,6 +14,12 @@ public class CustomOutputValue implements WritableComparable<CustomOutputValue> 
     private int sum;
     private int count;
 
+    public void addFields( CustomOutputValue customOutputValue )
+    {
+        sum += customOutputValue.getSum();
+        count += customOutputValue.getCount();
+    }
+
     public void readFields(DataInput in) throws IOException {
         this.sum = in.readInt();
     }

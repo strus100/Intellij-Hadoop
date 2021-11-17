@@ -13,10 +13,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 public class MapReduceMain
 {
-	public static class CustomMapper extends Mapper< Object, Text, Text, IntWritable >
+	public static class CustomMapper extends Mapper< Object, Text, Text, CustomOutputValue >
 	{
 		private final Text word = new Text();
-
+		private CustomOutputValue result = new CustomOutputValue();
 		public void map( Object key,Text value,Context context ) throws IOException, InterruptedException
 		{
 			if( ( (LongWritable) key ).get() != 0 )
@@ -25,13 +25,28 @@ public class MapReduceMain
 
 				word.set( line[ 1 ] );
 				int rate = Integer.parseInt( line[ 3 ] );
+				result.setSum( rate );
+				result.setCount( 1 );
 
-				context.write( word,new IntWritable( rate ) );
+				context.write( word, result );
 			}
 		}
 	}
 
-	public static class CustomCombiner extends Reducer< Text, IntWritable, Text, CustomOutputValue >
+	public static class CustomCombiner extends Reducer< Text, CustomOutputValue, Text, CustomOutputValue >
+	{
+		private CustomOutputValue result = new CustomOutputValue();
+		public void reduce( Text filmId, Iterable< CustomOutputValue > rates, Context context ) throws IOException, InterruptedException
+		{
+			for( CustomOutputValue custom: rates )
+			{
+				result.addFields( custom );
+			}
+			context.write( filmId, result );
+		}
+	}
+
+	public static class CustomReducer extends Reducer< Text, IntWritable, Text, CustomOutputValue >
 	{
 		private CustomOutputValue result = new CustomOutputValue();
 
@@ -50,16 +65,6 @@ public class MapReduceMain
 		}
 	}
 
-	public static class CustomReducer extends Reducer< Text, CustomOutputValue, Text, CustomOutputValue >
-	{
-		public void reduce( Text filmId, Iterable< CustomOutputValue > rates, Context context ) throws IOException, InterruptedException
-		{
-			for( CustomOutputValue custom: rates )
-			{
-				context.write( filmId, custom );
-			}
-		}
-	}
 
 	public static void main( String[] args ) throws Exception
 	{
