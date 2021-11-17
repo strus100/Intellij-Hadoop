@@ -31,12 +31,11 @@ public class MapReduceMain
 		}
 	}
 
-	public static class CustomReducer extends Reducer< Text, IntWritable, Text, CustomOutputValue >
+	public static class CustomCombiner extends Reducer< Text, IntWritable, Text, CustomOutputValue >
 	{
 		private CustomOutputValue result = new CustomOutputValue();
 
-		public void reduce( Text filmId,Iterable< IntWritable > rates,Context context ) throws IOException,
-																									   InterruptedException
+		public void reduce( Text filmId, Iterable< IntWritable > rates, Context context ) throws IOException, InterruptedException
 		{
 			int sum = 0;
 			int count = 0;
@@ -51,12 +50,24 @@ public class MapReduceMain
 		}
 	}
 
+	public static class CustomReducer extends Reducer< Text, CustomOutputValue, Text, CustomOutputValue >
+	{
+		public void reduce( Text filmId, Iterable< CustomOutputValue > rates, Context context ) throws IOException, InterruptedException
+		{
+			for( CustomOutputValue custom: rates )
+			{
+				context.write( filmId, custom );
+			}
+		}
+	}
+
 	public static void main( String[] args ) throws Exception
 	{
 		Configuration conf = new Configuration();
 		Job job = Job.getInstance( conf,"Step one map reduce" );
 		job.setJarByClass( MapReduceMain.class );
 		job.setMapperClass( CustomMapper.class );
+		job.setCombinerClass( CustomCombiner.class );
 		job.setReducerClass( CustomReducer.class );
 		job.setOutputKeyClass( Text.class );
 		job.setMapOutputValueClass( IntWritable.class );
